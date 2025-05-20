@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Module Prerequisites</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 60%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #f3f3f3;
+    }
+    h3 {
+      margin-top: 40px;
+    }
+    pre {
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Module and Prerequisite Relationships</h2>
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Prerequisite</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Original Table: module</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>mod_code</th>
+        <th>mod_name</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>M101</td><td>Programming Basics</td></tr>
+      <tr><td>M102</td><td>Data Structures</td></tr>
+      <tr><td>M103</td><td>Algorithms</td></tr>
+      <tr><td>M201</td><td>Web Development I</td></tr>
+      <tr><td>M202</td><td>Web Development II</td></tr>
+      <tr><td>M301</td><td>AI Applications</td></tr>
+      <tr><td>M302</td><td>Linear Algebra</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Original Table: pre_requisite</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>mod_code</th>
+        <th>requisite</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>M102</td><td>M101</td></tr>
+      <tr><td>M103</td><td>M102</td></tr>
+      <tr><td>M202</td><td>M201</td></tr>
+      <tr><td>M301</td><td>M302</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Source Code</h3>
+  <div>
+    <button onclick="showTab('js')" style="padding: 6px 12px;">JavaScript</button>
+    <button onclick="showTab('sql')" style="padding: 6px 12px;">SQL</button>
+  </div>
+
+  <div id="js-tab" class="code-tab" style="display:block;">
+    <pre>
+const MODULES = {
+  M101: "Programming Basics",
+  M102: "Data Structures",
+  M103: "Algorithms",
+  M201: "Web Development I",
+  M202: "Web Development II",
+  M301: "AI Applications",
+  M302: "Linear Algebra"
+};
+
+const PRE_REQUISITES = [
+  { mod_code: "M102", requisite: "M101" },
+  { mod_code: "M103", requisite: "M102" },
+  { mod_code: "M202", requisite: "M201" },
+  { mod_code: "M301", requisite: "M302" }
+];
+
+const tableBody = document.querySelector("#resultTable tbody");
+
+PRE_REQUISITES.forEach(record => {
+  const modName = MODULES[record.mod_code];
+  const prereqName = MODULES[record.requisite];
+
+  if (modName && prereqName) {
+    const row = `<tr>
+      <td>${modName}</td>
+      <td>${prereqName}</td>
+    </tr>`;
+    tableBody.innerHTML += row;
+  }
+});
+    </pre>
+    <img src="A_diagram_in_the_image_depicts_relational_algebra_.png"
+         alt="Relational Algebra Diagram"
+         style="margin-top:20px; max-width:100%; border:1px solid #ccc; border-radius:4px;">
+
+  </div>
+
+  <div id="sql-tab" class="code-tab" style="display:none;">
+    <pre>
+SELECT m.mod_name, mp.mod_name
+FROM module m
+JOIN pre_requisite p ON m.mod_code = p.mod_code
+JOIN module mp ON mp.mod_code = p.requisite;
+    </pre>
+    <img src="A_diagram_in_the_image_depicts_relational_algebra_.png"
+         alt="Relational Algebra Diagram"
+         style="margin-top:20px; max-width:100%; border:1px solid #ccc; border-radius:4px;">
+
+  </div>
+
+  <button onclick="toggleExplanation()" style="margin-top: 30px; padding: 6px 12px;">
+    Show Explanation: How the Code Works
+  </button>
+
+  <div id="explanation" style="display:none;">
+    <h3>How the Code Works</h3>
+    <p>
+      The JavaScript code simulates an SQL JOIN between two in-memory data structures:
+      <strong>MODULES</strong> (a dictionary) and <strong>PRE_REQUISITES</strong> (a list of module relationships).
+    </p>
+    <ol>
+      <li>Each item in <code>PRE_REQUISITES</code> contains <code>mod_code</code> and <code>requisite</code>.</li>
+      <li>Both codes are looked up in the <code>MODULES</code> dictionary to get full names.</li>
+      <li>The module name and its prerequisite are added to the HTML table dynamically.</li>
+    </ol>
+  </div>
+
+  <script>
+    function showTab(tabId) {
+      document.getElementById('js-tab').style.display = (tabId === 'js') ? 'block' : 'none';
+      document.getElementById('sql-tab').style.display = (tabId === 'sql') ? 'block' : 'none';
+    }
+
+    function toggleExplanation() {
+      const explanation = document.getElementById('explanation');
+      explanation.style.display = (explanation.style.display === 'none') ? 'block' : 'none';
+    }
+  
+    const MODULES = {
+      M101: "Programming Basics",
+      M102: "Data Structures",
+      M103: "Algorithms",
+      M201: "Web Development I",
+      M202: "Web Development II",
+      M301: "AI Applications",
+      M302: "Linear Algebra"
+    };
+
+    const PRE_REQUISITES = [
+      { mod_code: "M102", requisite: "M101" },
+      { mod_code: "M103", requisite: "M102" },
+      { mod_code: "M202", requisite: "M201" },
+      { mod_code: "M301", requisite: "M302" }
+    ];
+
+    const tableBody = document.querySelector("#resultTable tbody");
+
+    PRE_REQUISITES.forEach(record => {
+      const modName = MODULES[record.mod_code];
+      const prereqName = MODULES[record.requisite];
+
+      if (modName && prereqName) {
+        const row = `<tr>
+          <td>${modName}</td>
+          <td>${prereqName}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      }
+    });
+</script>
+
+</body>
+</html>
