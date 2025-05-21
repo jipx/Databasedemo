@@ -1,7 +1,13 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Module Prerequisites 559442</title>
+  <meta charset="UTF-8">
+  <title>Module Prerequisites with Voice Explanation</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -19,6 +25,14 @@
     }
     th {
       background-color: #f3f3f3;
+    }
+    .code-tab pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      overflow-x: auto;
     }
     h3 {
       margin-top: 40px;
@@ -73,58 +87,25 @@
     </tbody>
   </table>
 
-  <script>
-    const MODULES = {
-      M101: "Programming Basics",
-      M102: "Data Structures",
-      M103: "Algorithms",
-      M201: "Web Development I",
-      M202: "Web Development II",
-      M301: "AI Applications",
-      M302: "Linear Algebra"
-    };
-
-    const PRE_REQUISITES = [
-      { mod_code: "M102", requisite: "M101" },
-      { mod_code: "M103", requisite: "M102" },
-      { mod_code: "M202", requisite: "M201" },
-      { mod_code: "M301", requisite: "M302" }
-    ];
-
-    const tableBody = document.querySelector("#resultTable tbody");
-
-    PRE_REQUISITES.forEach(record => {
-      const modName = MODULES[record.mod_code];
-      const prereqName = MODULES[record.requisite];
-
-      if (modName && prereqName) {
-        const row = `<tr>
-          <td>${modName}</td>
-          <td>${prereqName}</td>
-        </tr>`;
-        tableBody.innerHTML += row;
-      }
-    });
-  </script>
-
   <div style="margin-top: 30px;">
-    <button onclick="showTab('js')">View JavaScript Code</button>
-    <button onclick="showTab('sql')">View SQL Code</button>
+    <button onclick="showTab('js')">JavaScript</button>
+    <button onclick="showTab('sql')">SQL</button>
     <button onclick="toggleExplanation()">Show Explanation</button>
+    <button onclick="playVoice()">Play Voice Explanation</button>
   </div>
 
   <div id="explanation" style="display:none;">
     <h3>How the Code Works</h3>
     <ol>
-      <li>Simulates a JOIN in JavaScript using two data structures.</li>
-      <li>Finds module and its prerequisite by matching codes to names.</li>
-      <li>Appends each match as a new row in the HTML table.</li>
+      <li>This JavaScript logic mimics a SQL JOIN between module and prerequisite tables.</li>
+      <li>Each prerequisite entry is mapped using a lookup to show full names.</li>
+      <li>The resulting data is rendered into the table above dynamically.</li>
     </ol>
   </div>
 
   <div id="js-tab" class="code-tab" style="display:block;">
-    <pre style="background-color:#1e1e1e; color:#d4d4d4; padding:16px; border-radius:6px; font-family:Consolas, monospace; overflow-x:auto;">
-&lt;script&gt;
+    <pre><code class="language-javascript">
+// JavaScript JOIN simulation logic
 const MODULES = {
   M101: "Programming Basics",
   M102: "Data Structures",
@@ -156,17 +137,17 @@ PRE_REQUISITES.forEach(record => {
     tableBody.innerHTML += row;
   }
 });
-&lt;/script&gt;
-    </pre>
+    </code></pre>
   </div>
 
   <div id="sql-tab" class="code-tab" style="display:none;">
-    <pre style="background-color:#1e1e1e; color:#d4d4d4; padding:16px; border-radius:6px; font-family:Consolas, monospace; overflow-x:auto;">
+    <pre><code class="language-sql">
+-- SQL JOIN to find module and its prerequisite names
 SELECT m1.mod_name AS Module, m2.mod_name AS Prerequisite
 FROM module m1
 JOIN pre_requisite p ON m1.mod_code = p.mod_code
 JOIN module m2 ON p.requisite = m2.mod_code;
-    </pre>
+    </code></pre>
   </div>
 
   <script>
@@ -179,6 +160,52 @@ JOIN module m2 ON p.requisite = m2.mod_code;
       const explanation = document.getElementById('explanation');
       explanation.style.display = (explanation.style.display === 'none') ? 'block' : 'none';
     }
+
+    function playVoice() {
+      const msg = new SpeechSynthesisUtterance(
+        "This program simulates a SQL JOIN using JavaScript. It connects a list of modules and their prerequisites. " +
+        "Each module code is matched to its name, and the result is displayed as a relationship. " +
+        "For example, Data Structures requires Programming Basics."
+      );
+      msg.rate = 1;
+      msg.pitch = 1;
+      msg.lang = 'en-US';
+      speechSynthesis.speak(msg);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const MODULES = {
+        M101: "Programming Basics",
+        M102: "Data Structures",
+        M103: "Algorithms",
+        M201: "Web Development I",
+        M202: "Web Development II",
+        M301: "AI Applications",
+        M302: "Linear Algebra"
+      };
+
+      const PRE_REQUISITES = [
+        { mod_code: "M102", requisite: "M101" },
+        { mod_code: "M103", requisite: "M102" },
+        { mod_code: "M202", requisite: "M201" },
+        { mod_code: "M301", requisite: "M302" }
+      ];
+
+      const tableBody = document.querySelector("#resultTable tbody");
+
+      PRE_REQUISITES.forEach(record => {
+        const modName = MODULES[record.mod_code];
+        const prereqName = MODULES[record.requisite];
+
+        if (modName && prereqName) {
+          const row = `<tr>
+            <td>${modName}</td>
+            <td>${prereqName}</td>
+          </tr>`;
+          tableBody.innerHTML += row;
+        }
+      });
+    });
   </script>
 
 </body>
