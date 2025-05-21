@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -129,30 +128,7 @@
   </ol>
   </div>
 
-  <script>
-    function showTab(tabId) {
-      document.getElementById('js-tab').style.display = (tabId === 'js') ? 'block' : 'none';
-      document.getElementById('sql-tab').style.display = (tabId === 'sql') ? 'block' : 'none';
-    }
-
-    function toggleExplanation() {
-      const explanation = document.getElementById('explanation');
-      explanation.style.display = (explanation.style.display === 'none') ? 'block' : 'none';
-    }
-  </script>
-</body>
-</html>
-
-</html>
-
-  
-  <h3>Source Code</h3>
-  <div style="margin-bottom: 10px;">
-    <button onclick="showTab('js')" style="padding: 6px 12px;">JavaScript</button>
-    <button onclick="showTab('sql')" style="padding: 6px 12px;">SQL</button>
-  </div>
   <div id="js-tab" class="code-tab" style="display:block;">
-
   <pre style="background-color:#1e1e1e; color:#d4d4d4; padding:16px; border-radius:6px; font-family:Consolas, monospace; overflow-x:auto;">
 &lt;script&gt;
 const MODULES = {
@@ -188,39 +164,29 @@ PRE_REQUISITES.forEach(record => {
 });
 &lt;/script&gt;
   </pre>
+</div>
 
-  
-  <button onclick="toggleExplanation()" style="margin-top: 30px; padding: 6px 12px;">
-    Show Explanation: How the Code Works
-  </button>
-  <div id="explanation" style="display:none;">
-  <h3>How the Code Works</h3>
+<div id="sql-tab" class="code-tab" style="display:none;">
+  <pre style="background-color:#1e1e1e; color:#d4d4d4; padding:16px; border-radius:6px; font-family:Consolas, monospace; overflow-x:auto;">
+SELECT m1.mod_name AS Module, m2.mod_name AS Prerequisite
+FROM module m1
+JOIN pre_requisite p ON m1.mod_code = p.mod_code
+JOIN module m2 ON p.requisite = m2.mod_code;
+  </pre>
+</div>
 
-  <p>
-    The JavaScript code simulates an SQL JOIN between two in-memory data structures:
-    <strong>MODULES</strong>, a dictionary of module codes to names, and <strong>PRE_REQUISITES</strong>,
-    a list of relationships where one module requires another as a prerequisite.
-  </p>
-  <ol>
-    <li>Each entry in <code>PRE_REQUISITES</code> has a <code>mod_code</code> and a <code>requisite</code> code.</li>
-    <li>For every prerequisite mapping, the code looks up both codes in the <code>MODULES</code> dictionary.</li>
-    <li>If both exist, a new row is created with the full module names and added to the output table.</li>
-    <li>The table is dynamically populated using <code>innerHTML</code>.</li>
-  </ol>
-  </div>
+<script>
+  function showTab(tabId) {
+    document.getElementById('js-tab').style.display = (tabId === 'js') ? 'block' : 'none';
+    document.getElementById('sql-tab').style.display = (tabId === 'sql') ? 'block' : 'none';
+  }
 
-  <script>
-    function showTab(tabId) {
-      document.getElementById('js-tab').style.display = (tabId === 'js') ? 'block' : 'none';
-      document.getElementById('sql-tab').style.display = (tabId === 'sql') ? 'block' : 'none';
-    }
-
-    function toggleExplanation() {
-      const explanation = document.getElementById('explanation');
-      explanation.style.display = (explanation.style.display === 'none') ? 'block' : 'none';
-    }
-  </script>
+  function toggleExplanation() {
+    const explanation = document.getElementById('explanation');
+    explanation.style.display = (explanation.style.display === 'none') ? 'block' : 'none';
+  }
+</script>
 </body>
 </html>
 
-</html>
+
