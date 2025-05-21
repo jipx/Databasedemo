@@ -250,13 +250,13 @@ JOIN module m2 ON p.requisite = m2.mod_code;
 <script>
 function updateTime() {
   const timestamp = new Date().toLocaleTimeString();
-  fetch("https://worldtimeapi.org/api/timezone/Asia/Singapore")
+  fetch("https://timeapi.io/api/Time/current/zone?timeZone=Asia/Singapore")
     .then(response => {
       if (!response.ok) throw new Error("Network response was not ok");
       return response.json();
     })
     .then(data => {
-      const dateTime = data.datetime;
+      const dateTime = `${data.date} ${data.time}`;
       document.getElementById("currentTime").textContent = "Current Time (SGT): " + dateTime;
       document.getElementById("updatedTime").textContent = "Last updated at: " + timestamp;
     })
