@@ -1,0 +1,264 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bedrock App Checklist (Complete Fallback)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+    }
+    .content {
+      flex: 2;
+      padding: 40px;
+    }
+    .summary {
+      flex: 1;
+      padding: 40px;
+      border-left: 2px solid #eee;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    details {
+      margin-bottom: 20px;
+    }
+    summary {
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    label {
+      display: block;
+      margin: 5px 0 5px 20px;
+      font-size: 16px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="content">
+  <h1>Bedrock App Security Checklist</h1>
+  <button onclick="window.print()">Print to PDF</button> <img src='images/Lab2-arch.png' alt='Architecture Diagram' style='width:100%; max-width:900px; display:block; margin-bottom:30px;'>
+
+  <div id="checklist"></div>
+</div>
+
+<div class="summary">
+  <h2>Pending Items</h2>
+  <ul id="pendingList"></ul>
+
+<div style="margin-top: 20px;">
+  <label>Progress:</label>
+  <div style="background-color: #eee; width: 100%; height: 20px; border-radius: 10px; overflow: hidden;">
+    <div id="progressFill" style="height: 100%; background-color: #2ecc71; width: 0%; transition: width 0.3s;"></div>
+  </div>
+  <p id="progressText" style="font-size: 14px; margin-top: 5px;">0% completed</p>
+</div>
+
+</div>
+
+<script>
+const offlineChecklistData = {
+  "Authentication & Authorization": [
+    "Enable MFA for Cognito user pool",
+    "Apply strong password policy",
+    "Enable short-lived access tokens and longer refresh tokens",
+    "Use Cognito groups and IAM role mappings",
+    "Validate JWT tokens on every API call"
+  ],
+  "API Gateway": [
+    "Attach Cognito Authorizer to all routes",
+    "Enable throttling and AWS WAF",
+    "Validate and sanitize all inputs"
+  ],
+  "Lambda": [
+    "Apply least privilege IAM roles",
+    "Enable CloudWatch logs and AWS X-Ray tracing",
+    "Sanitize all prompt input to Bedrock"
+  ],
+  "Bedrock": [
+    "Use structured prompts and sanitize input",
+    "Log all prompts and outputs",
+    "Monitor cost usage and set limits"
+  ],
+  "Data Security": [
+    "Enable encryption for DynamoDB, S3, and SNS",
+    "Use KMS for encryption keys",
+    "Restrict access with resource-based policies"
+  ],
+  "ECS / Streamlit App": [
+    "Use secure ECR base image and scan for vulnerabilities",
+    "Enable read-only containers and drop unused Linux capabilities",
+    "Place ECS service behind ALB with TLS",
+    "Isolate dev, staging, and production environments"
+  ],
+  "Monitoring & Alerts": [
+    "Enable AWS CloudTrail and GuardDuty",
+    "Create alarms for unusual API/Lambda activity",
+    "Periodically audit IAM roles and resources"
+  ],
+  "Compliance (CIS & AWS Well-Architected)": [
+    "Enforce IAM password complexity and rotation",
+    "Enable CloudTrail in all regions",
+    "Integrate CloudTrail with CloudWatch Logs",
+    "Encrypt data at rest and in transit",
+    "Enable logging and configuration monitoring with AWS Config",
+    "Implement automated incident response procedures"
+  ]
+};
+
+const checklistContainer = document.getElementById('checklist');
+const pendingList = document.getElementById('pendingList');
+
+function renderChecklist(data) {
+  checklistContainer.innerHTML = "";
+  Object.entries(data).forEach(([section, items]) => {
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = section;
+    details.appendChild(summary);
+
+    items.forEach(item => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.onchange = updatePendingList;
+      checkbox.dataset.item = item;
+      checkbox.dataset.section = section;
+      label.appendChild(checkbox);
+      label.append(` ${item}`);
+      details.appendChild(label);
+    });
+
+    checklistContainer.appendChild(details);
+  });
+  updatePendingList(); updateProgressBar();
+}
+
+function updatePendingList() {
+  pendingList.innerHTML = "";
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    if (!cb.checked) {
+      const li = document.createElement('li');
+      li.textContent = `${cb.dataset.section}: ${cb.dataset.item}`;
+      pendingList.appendChild(li);
+    }
+  });
+}
+
+function loadChecklist() {
+  if (navigator.onLine) {
+    fetch('https://your-api-url/checklist?userId=default')
+      .then(res => res.json())
+      .then(apiData => {
+        const organized = {};
+        apiData.forEach(item => {
+          if (!organized[item.section]) organized[item.section] = [];
+          organized[item.section].push(item.itemText);
+        });
+        renderChecklist(organized); bindCheckboxEvents(); restoreFromLocal(); updatePendingList(); updateProgressBar(); updatePendingList(); updateProgressBar(); restoreFromLocal();
+      })
+      .catch(err => {
+        console.warn("API fetch failed. Using offline data.", err);
+        renderChecklist(offlineChecklistData); bindCheckboxEvents(); restoreFromLocal(); updatePendingList(); updateProgressBar(); updatePendingList(); updateProgressBar(); restoreFromLocal();
+      });
+  } else {
+    renderChecklist(offlineChecklistData); bindCheckboxEvents(); restoreFromLocal(); updatePendingList(); updateProgressBar(); updatePendingList(); updateProgressBar(); restoreFromLocal();
+  }
+}
+
+
+function saveToLocal() {
+  const checklistState = [];
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    checklistState.push({
+      section: cb.dataset.section,
+      item: cb.dataset.item,
+      checked: cb.checked
+    });
+  });
+  localStorage.setItem("checklistState", JSON.stringify(checklistState));
+}
+
+function restoreFromLocal() {
+  const saved = localStorage.getItem("checklistState");
+  if (!saved) return;
+  const state = JSON.parse(saved);
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    const match = state.find(s => s.item === cb.dataset.item && s.section === cb.dataset.section);
+    if (match) cb.checked = match.checked;
+  });
+}
+
+function syncToAPI() {
+  if (!navigator.onLine) return;
+  const checklistPayload = [];
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    checklistPayload.push({
+      section: cb.dataset.section,
+      itemText: cb.dataset.item,
+      completed: cb.checked,
+      userId: "default",
+      itemId: `${cb.dataset.section.substring(0,3).toLowerCase()}.${cb.dataset.item.toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0,48)}`
+    });
+  });
+
+  fetch('https://your-api-url/checklist?userId=default', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ checklist: checklistPayload })
+  }).then(res => {
+    if (res.ok) console.log("Checklist synced to API");
+  }).catch(err => console.warn("Failed to sync checklist to API:", err));
+}
+
+function bindCheckboxEvents() {
+  document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      saveToLocal();
+      updatePendingList(); updateProgressBar();
+      syncToAPI(); updateProgressBar();
+    });
+  });
+}
+
+
+loadChecklist();
+
+function updateProgressBar() {
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const total = checkboxes.length;
+  const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  document.getElementById("progressFill").style.width = percent + "%";
+  document.getElementById("progressText").textContent = `${percent}% completed`;
+}
+
+</script>
+
+</body>
+</html>
