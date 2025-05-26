@@ -2,14 +2,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bedrock App Security Checklist (Collapsible)</title>
+  <title>Bedrock App Security Checklist (Interactive + Summary)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 40px;
+      margin: 0;
+      display: flex;
+    }
+    .content {
+      flex: 2;
+      padding: 40px;
+    }
+    .summary {
+      flex: 1;
+      padding: 40px;
+      border-left: 2px solid #eee;
+      background-color: #f9f9f9;
     }
     h1 {
       color: #2c3e50;
+    }
+    h2 {
+      margin-top: 0;
     }
     button {
       padding: 10px 15px;
@@ -36,76 +50,119 @@
       margin: 5px 0 5px 20px;
       font-size: 16px;
     }
+    ul {
+      padding-left: 20px;
+    }
   </style>
 </head>
 <body>
-<img src='images/Lab2-arch.png' 
-     alt='Architecture Diagram' style='width:100%; max-width:900px; display:block; margin-bottom:30px;'>
 
-<h1>Bedrock App Security Checklist</h1>
-<button onclick="window.print()">Print to PDF</button>
+<div class="content">
+  <h1>Bedrock App Security Checklist</h1>
+  <button onclick="window.print()">Print to PDF</button>
 
-<details>
-  <summary>Authentication & Authorization</summary>
-  <label><input type="checkbox"> Enable MFA for Cognito user pool</label>
-  <label><input type="checkbox"> Apply strong password policy</label>
-  <label><input type="checkbox"> Enable short-lived access tokens and longer refresh tokens</label>
-  <label><input type="checkbox"> Use Cognito groups and IAM role mappings</label>
-  <label><input type="checkbox"> Validate JWT tokens on every API call</label>
-</details>
+  <div id="checklist">
+    <!-- Dynamically rendered checklist will go here -->
+  </div>
+</div>
 
-<details>
-  <summary>API Gateway</summary>
-  <label><input type="checkbox"> Attach Cognito Authorizer to all routes</label>
-  <label><input type="checkbox"> Enable throttling and AWS WAF</label>
-  <label><input type="checkbox"> Validate and sanitize all inputs</label>
-</details>
+<div class="summary">
+  <h2>Pending Items</h2>
+  <ul id="pendingList"></ul>
+</div>
 
-<details>
-  <summary>Lambda</summary>
-  <label><input type="checkbox"> Apply least privilege IAM roles</label>
-  <label><input type="checkbox"> Enable CloudWatch logs and AWS X-Ray tracing</label>
-  <label><input type="checkbox"> Sanitize all prompt input to Bedrock</label>
-</details>
+<script>
+const checklistData = {
+  "Authentication & Authorization": [
+    "Enable MFA for Cognito user pool",
+    "Apply strong password policy",
+    "Enable short-lived access tokens and longer refresh tokens",
+    "Use Cognito groups and IAM role mappings",
+    "Validate JWT tokens on every API call"
+  ],
+  "API Gateway": [
+    "Attach Cognito Authorizer to all routes",
+    "Enable throttling and AWS WAF",
+    "Validate and sanitize all inputs"
+  ],
+  "Lambda": [
+    "Apply least privilege IAM roles",
+    "Enable CloudWatch logs and AWS X-Ray tracing",
+    "Sanitize all prompt input to Bedrock"
+  ],
+  "Bedrock": [
+    "Use structured prompts and sanitize input",
+    "Log all prompts and outputs",
+    "Monitor cost usage and set limits"
+  ],
+  "Data Security": [
+    "Enable encryption for DynamoDB, S3, and SNS",
+    "Use KMS for encryption keys",
+    "Restrict access with resource-based policies"
+  ],
+  "ECS / Streamlit App": [
+    "Use secure ECR base image and scan for vulnerabilities",
+    "Enable read-only containers and drop unused Linux capabilities",
+    "Place ECS service behind ALB with TLS",
+    "Isolate dev, staging, and production environments"
+  ],
+  "Monitoring & Alerts": [
+    "Enable AWS CloudTrail and GuardDuty",
+    "Create alarms for unusual API/Lambda activity",
+    "Periodically audit IAM roles and resources"
+  ],
+  "Compliance (CIS & AWS Well-Architected)": [
+    "Enforce IAM password complexity and rotation",
+    "Enable CloudTrail in all regions",
+    "Integrate CloudTrail with CloudWatch Logs",
+    "Encrypt data at rest and in transit",
+    "Enable logging and configuration monitoring with AWS Config",
+    "Implement automated incident response procedures"
+  ]
+};
 
-<details>
-  <summary>Bedrock</summary>
-  <label><input type="checkbox"> Use structured prompts and sanitize input</label>
-  <label><input type="checkbox"> Log all prompts and outputs</label>
-  <label><input type="checkbox"> Monitor cost usage and set limits</label>
-</details>
+const checklistContainer = document.getElementById('checklist');
+const pendingList = document.getElementById('pendingList');
 
-<details>
-  <summary>Data Security</summary>
-  <label><input type="checkbox"> Enable encryption for DynamoDB, S3, and SNS</label>
-  <label><input type="checkbox"> Use KMS for encryption keys</label>
-  <label><input type="checkbox"> Restrict access with resource-based policies</label>
-</details>
+function renderChecklist() {
+  Object.entries(checklistData).forEach(([section, items]) => {
+    const details = document.createElement('details');
+    const summary = document.createElement('summary');
+    summary.textContent = section;
+    details.appendChild(summary);
 
-<details>
-  <summary>ECS / Streamlit App</summary>
-  <label><input type="checkbox"> Use secure ECR base image and scan for vulnerabilities</label>
-  <label><input type="checkbox"> Enable read-only containers and drop unused Linux capabilities</label>
-  <label><input type="checkbox"> Place ECS service behind ALB with TLS</label>
-  <label><input type="checkbox"> Isolate dev, staging, and production environments</label>
-</details>
+    items.forEach(item => {
+      const label = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.onchange = updatePendingList;
+      checkbox.dataset.item = item;
+      checkbox.dataset.section = section;
+      label.appendChild(checkbox);
+      label.append(` ${item}`);
+      details.appendChild(label);
+    });
 
-<details>
-  <summary>Monitoring & Alerts</summary>
-  <label><input type="checkbox"> Enable AWS CloudTrail and GuardDuty</label>
-  <label><input type="checkbox"> Create alarms for unusual API/Lambda activity</label>
-  <label><input type="checkbox"> Periodically audit IAM roles and resources</label>
-</details>
+    checklistContainer.appendChild(details);
+  });
+}
 
-<details>
-  <summary>Compliance (CIS & AWS Well-Architected)</summary>
-  <label><input type="checkbox"> Enforce IAM password complexity and rotation</label>
-  <label><input type="checkbox"> Enable CloudTrail in all regions</label>
-  <label><input type="checkbox"> Integrate CloudTrail with CloudWatch Logs</label>
-  <label><input type="checkbox"> Encrypt data at rest and in transit</label>
-  <label><input type="checkbox"> Enable logging and configuration monitoring with AWS Config</label>
-  <label><input type="checkbox"> Implement automated incident response procedures</label>
-</details>
+function updatePendingList() {
+  pendingList.innerHTML = "";
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  checkboxes.forEach(cb => {
+    if (!cb.checked) {
+      const li = document.createElement('li');
+      li.textContent = `${cb.dataset.section}: ${cb.dataset.item}`;
+      pendingList.appendChild(li);
+    }
+  });
+}
+
+// Initialize
+renderChecklist();
+updatePendingList();
+</script>
 
 </body>
 </html>
