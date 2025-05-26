@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bedrock App Security Checklist (Collapsible)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    details {
+      margin-bottom: 20px;
+    }
+    summary {
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    label {
+      display: block;
+      margin: 5px 0 5px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+<img src='https://upload.wikimedia.org/wikipedia/commons/9/93/AWS_Bedrock_Architecture_Diagram.png' 
+     alt='Architecture Diagram' style='width:100%; max-width:900px; display:block; margin-bottom:30px;'>
+
+<h1>Bedrock App Security Checklist</h1>
+<button onclick="window.print()">Print to PDF</button>
+
+<details>
+  <summary>Authentication & Authorization</summary>
+  <label><input type="checkbox"> Enable MFA for Cognito user pool</label>
+  <label><input type="checkbox"> Apply strong password policy</label>
+  <label><input type="checkbox"> Enable short-lived access tokens and longer refresh tokens</label>
+  <label><input type="checkbox"> Use Cognito groups and IAM role mappings</label>
+  <label><input type="checkbox"> Validate JWT tokens on every API call</label>
+</details>
+
+<details>
+  <summary>API Gateway</summary>
+  <label><input type="checkbox"> Attach Cognito Authorizer to all routes</label>
+  <label><input type="checkbox"> Enable throttling and AWS WAF</label>
+  <label><input type="checkbox"> Validate and sanitize all inputs</label>
+</details>
+
+<details>
+  <summary>Lambda</summary>
+  <label><input type="checkbox"> Apply least privilege IAM roles</label>
+  <label><input type="checkbox"> Enable CloudWatch logs and AWS X-Ray tracing</label>
+  <label><input type="checkbox"> Sanitize all prompt input to Bedrock</label>
+</details>
+
+<details>
+  <summary>Bedrock</summary>
+  <label><input type="checkbox"> Use structured prompts and sanitize input</label>
+  <label><input type="checkbox"> Log all prompts and outputs</label>
+  <label><input type="checkbox"> Monitor cost usage and set limits</label>
+</details>
+
+<details>
+  <summary>Data Security</summary>
+  <label><input type="checkbox"> Enable encryption for DynamoDB, S3, and SNS</label>
+  <label><input type="checkbox"> Use KMS for encryption keys</label>
+  <label><input type="checkbox"> Restrict access with resource-based policies</label>
+</details>
+
+<details>
+  <summary>ECS / Streamlit App</summary>
+  <label><input type="checkbox"> Use secure ECR base image and scan for vulnerabilities</label>
+  <label><input type="checkbox"> Enable read-only containers and drop unused Linux capabilities</label>
+  <label><input type="checkbox"> Place ECS service behind ALB with TLS</label>
+  <label><input type="checkbox"> Isolate dev, staging, and production environments</label>
+</details>
+
+<details>
+  <summary>Monitoring & Alerts</summary>
+  <label><input type="checkbox"> Enable AWS CloudTrail and GuardDuty</label>
+  <label><input type="checkbox"> Create alarms for unusual API/Lambda activity</label>
+  <label><input type="checkbox"> Periodically audit IAM roles and resources</label>
+</details>
+
+<details>
+  <summary>Compliance (CIS & AWS Well-Architected)</summary>
+  <label><input type="checkbox"> Enforce IAM password complexity and rotation</label>
+  <label><input type="checkbox"> Enable CloudTrail in all regions</label>
+  <label><input type="checkbox"> Integrate CloudTrail with CloudWatch Logs</label>
+  <label><input type="checkbox"> Encrypt data at rest and in transit</label>
+  <label><input type="checkbox"> Enable logging and configuration monitoring with AWS Config</label>
+  <label><input type="checkbox"> Implement automated incident response procedures</label>
+</details>
+
+</body>
+</html>
