@@ -2,6 +2,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <title>Bedrock App Security Checklist (Interactive + Summary)</title>
   <style>
     body {
@@ -60,114 +65,9 @@
 <div class="content">
   <h1>Bedrock App Security Checklist</h1>
   <button onclick="window.print()">Print to PDF</button>
-<img src='images/Lab2-arch.png' alt='Architecture Diagram' style='width:100%; max-width:900px; display:block; margin-bottom:30px;'>
+
+  <img src='https://upload.wikimedia.org/wikipedia/commons/9/93/AWS_Bedrock_Architecture_Diagram.png' alt='Architecture Diagram' style='width:100%; max-width:900px; display:block; margin-bottom:30px;'>
 <div id="checklist">
-    <!-- Dynamically rendered checklist will go here -->
-  </div>
-</div>
-
-<div class="summary">
-  <h2>Pending Items</h2>
-  <ul id="pendingList"></ul>
-</div>
-
-<script>
-const checklistData = {
-  "Authentication & Authorization": [
-    "Enable MFA for Cognito user pool",
-    "Apply strong password policy",
-    "Enable short-lived access tokens and longer refresh tokens",
-    "Use Cognito groups and IAM role mappings",
-    "Validate JWT tokens on every API call"
-  ],
-  "API Gateway": [
-    "Attach Cognito Authorizer to all routes",
-    "Enable throttling and AWS WAF",
-    "Validate and sanitize all inputs"
-  ],
-  "Lambda": [
-    "Apply least privilege IAM roles",
-    "Enable CloudWatch logs and AWS X-Ray tracing",
-    "Sanitize all prompt input to Bedrock"
-  ],
-  "Bedrock": [
-    "Use structured prompts and sanitize input",
-    "Log all prompts and outputs",
-    "Monitor cost usage and set limits"
-  ],
-  "Data Security": [
-    "Enable encryption for DynamoDB, S3, and SNS",
-    "Use KMS for encryption keys",
-    "Restrict access with resource-based policies"
-  ],
-  "ECS / Streamlit App": [
-    "Use secure ECR base image and scan for vulnerabilities",
-    "Enable read-only containers and drop unused Linux capabilities",
-    "Place ECS service behind ALB with TLS",
-    "Isolate dev, staging, and production environments"
-  ],
-  "Monitoring & Alerts": [
-    "Enable AWS CloudTrail and GuardDuty",
-    "Create alarms for unusual API/Lambda activity",
-    "Periodically audit IAM roles and resources"
-  ],
-  "Compliance (CIS & AWS Well-Architected)": [
-    "Enforce IAM password complexity and rotation",
-    "Enable CloudTrail in all regions",
-    "Integrate CloudTrail with CloudWatch Logs",
-    "Encrypt data at rest and in transit",
-    "Enable logging and configuration monitoring with AWS Config",
-    "Implement automated incident response procedures"
-  ]
-};
-
-const checklistContainer = document.getElementById('checklist');
-const pendingList = document.getElementById('pendingList');
-
-function renderChecklist() {
-  Object.entries(checklistData).forEach(([section, items]) => {
-    const details = document.createElement('details');
-    const summary = document.createElement('summary');
-    summary.textContent = section;
-    details.appendChild(summary);
-
-    items.forEach(item => {
-      const label = document.createElement('label');
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.onchange = updatePendingList;
-      checkbox.dataset.item = item;
-      checkbox.dataset.section = section;
-      label.appendChild(checkbox);
-      label.append(` ${item}`);
-      details.appendChild(label);
-    });
-
-    checklistContainer.appendChild(details);
-  });
-}
-
-function updatePendingList() {
-  pendingList.innerHTML = "";
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(cb => {
-    if (!cb.checked) {
-      const li = document.createElement('li');
-      li.textContent = `${cb.dataset.section}: ${cb.dataset.item}`;
-      pendingList.appendChild(li);
-    }
-  });
-}
-
-// Initialize
-renderChecklist();
-updatePendingList();
-</script>
-
-</body>
-</html>
-
-  <div id="checklist">
     <!-- Dynamically rendered checklist will go here -->
   </div>
 </div>
