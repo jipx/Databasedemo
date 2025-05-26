@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Checklist App without custom resource (manual POST seed)
+
+Resources:
+
+  ChecklistTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ChecklistItems
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: itemId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: itemId
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  ChecklistLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ChecklistLambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ChecklistDynamoAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                Resource: "*"
+              - Effect: Allow
+                Action: logs:*
+                Resource: "*"
+
+  ChecklistFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: ChecklistHandler
+      Runtime: python3.12
+      Role: !GetAtt ChecklistLambdaRole.Arn
+      Handler: index.lambda_handler
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          
+          dynamodb = boto3.resource('dynamodb')
+          table = dynamodb.Table('ChecklistItems')
+          
+          def lambda_handler(event, context):
+              method = event.get('httpMethod')
+          
+              if method == 'GET':
+                  user_id = event.get('queryStringParameters', {}).get('userId', 'default')
+                  response = table.query(
+                      KeyConditionExpression=boto3.dynamodb.conditions.Key('userId').eq(user_id)
+                  )
+                  return {
+                      "statusCode": 200,
+                      "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+                      "body": json.dumps(response['Items'])
+                  }
+          
+              elif method == 'POST':
+                  items = json.loads(event['body'])['checklist']
+                  for item in items:
+                      table.put_item(Item=item)
+                  return {
+                      "statusCode": 200,
+                      "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+                      "body": json.dumps({"message": "Checklist saved"})
+                  }
+          
+              return {
+                  "statusCode": 405,
+                  "headers": {"Access-Control-Allow-Origin": "*"},
+                  "body": "Method Not Allowed"
+              }
+
+  ChecklistApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: ChecklistAPI
+
+  ChecklistApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ChecklistApi.RootResourceId
+      PathPart: checklist
+      RestApiId: !Ref ChecklistApi
+
+  ChecklistApiGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: GET
+      ResourceId: !Ref ChecklistApiResource
+      RestApiId: !Ref ChecklistApi
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChecklistFunction.Arn}/invocations
+
+  ChecklistApiPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      HttpMethod: POST
+      ResourceId: !Ref ChecklistApiResource
+      RestApiId: !Ref ChecklistApi
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ChecklistFunction.Arn}/invocations
+
+  ChecklistLambdaPermissionGet:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ChecklistFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChecklistApi}/*/GET/checklist
+
+  ChecklistLambdaPermissionPost:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ChecklistFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub: arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ChecklistApi}/*/POST/checklist
+
+Outputs:
+  ChecklistApiUrl:
+    Description: "Invoke URL for the /checklist endpoint"
+    Value:
+      Fn::Sub: https://${ChecklistApi}.execute-api.${AWS::Region}.amazonaws.com/prod/checklist
+    Export:
+      Name: ChecklistApiInvokeUrl
