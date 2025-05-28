@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SQL ON DELETE Worksheet</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    select { width: 100%; }
+    .correct { background-color: #d4edda; }
+    .incorrect { background-color: #f8d7da; }
+    .explanation { font-size: 0.9em; margin-top: 5px; color: #555; }
+    #result { margin-top: 20px; font-weight: bold; }
+    button { margin-top: 10px; margin-right: 10px; padding: 8px 16px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <h2>SQL ON DELETE Worksheet</h2>
+  <button onclick="window.print()" style="margin-right: 10px; padding: 8px 16px; font-size: 16px;">🖨️ Print or Save as PDF</button>
+<a href="https://api.whatsapp.com/send?text=Check%20out%20this%20SQL%20ON%20DELETE%20Worksheet:%20https://example.com/sql_on_delete.html" target="_blank" style="display:inline-block; padding: 8px 16px; background-color: #25D366; color: white; font-size: 16px; text-decoration: none; border-radius: 5px;">📤 Share on WhatsApp</a>
+<br><br>
+ style="margin-bottom: 20px; padding: 8px 16px; font-size: 16px;">🖨️ Print or Save as PDF</button>
+
+  <p><strong>Instructions:</strong> Select the correct <code>ON DELETE</code> action for each row, then click <strong>Check Answers</strong>.</p>
+
+  <h3>Sample Data</h3>
+  <pre><code>
+CREATE TABLE Customers (
+  customer_id INT PRIMARY KEY,
+  name VARCHAR(100)
+);
+
+CREATE TABLE Orders (
+  order_id INT PRIMARY KEY,
+  customer_id INT,
+  FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE ?
+);
+
+-- Customers
+| customer_id | name  |
+|-------------|-------|
+| 1           | Alice |
+| 2           | Bob   |
+
+-- Orders
+| order_id | customer_id |
+|----------|-------------|
+| 101      | 1           |
+| 102      | 1           |
+| 103      | 2           |
+  </code></pre>
+  <table>
+    <thead>
+      <tr>
+        <th>ON DELETE Option</th>
+        <th>Precondition</th>
+        <th>Event</th>
+        <th>Action</th>
+        <th>Postcondition</th>
+        <th>Rows Affected</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <select>
+            <option value="">--Select--</option>
+            <option>ON DELETE CASCADE</option>
+            <option>ON DELETE SET NULL</option>
+            <option>ON DELETE RESTRICT</option>
+            <option>ON DELETE SET DEFAULT</option>
+          </select>
+          <div class="explanation"></div>
+        </td>
+        <td>Alice (ID 1) has two orders in `Orders`</td>
+        <td>Alice is deleted from `Customers`</td>
+        <td>Both orders with customer_id 1 are deleted automatically</td>
+        <td>No orders remain for Alice</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>
+          <select>
+            <option value="">--Select--</option>
+            <option>ON DELETE CASCADE</option>
+            <option>ON DELETE SET NULL</option>
+            <option>ON DELETE RESTRICT</option>
+            <option>ON DELETE SET DEFAULT</option>
+          </select>
+          <div class="explanation"></div>
+        </td>
+        <td>Orders.customer_id allows NULL</td>
+        <td>Alice is deleted</td>
+        <td>Orders 101 and 102 are updated with customer_id = NULL</td>
+        <td>Orders stay in table but are no longer linked to Alice</td>
+        <td>2</td>
+      </tr>
+      <tr>
+        <td>
+          <select>
+            <option value="">--Select--</option>
+            <option>ON DELETE CASCADE</option>
+            <option>ON DELETE SET NULL</option>
+            <option>ON DELETE RESTRICT</option>
+            <option>ON DELETE SET DEFAULT</option>
+          </select>
+          <div class="explanation"></div>
+        </td>
+        <td>Alice has orders in `Orders`</td>
+        <td>Try to delete Alice</td>
+        <td>Deletion is blocked with an error</td>
+        <td>Alice and her orders remain unchanged</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td>
+          <select>
+            <option value="">--Select--</option>
+            <option>ON DELETE CASCADE</option>
+            <option>ON DELETE SET NULL</option>
+            <option>ON DELETE RESTRICT</option>
+            <option>ON DELETE SET DEFAULT</option>
+          </select>
+          <div class="explanation"></div>
+        </td>
+        <td>Orders.customer_id has a default value of `0`</td>
+        <td>Alice is deleted</td>
+        <td>Orders 101 and 102 have their customer_id set to 0</td>
+        <td>Orders remain, now pointing to the default customer ID</td>
+        <td>2</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button onclick="checkAnswers()">Check Answers</button>
+  <button onclick="resetQuiz()">Try Again</button>
+  <div id="result"></div>
+
+  <script>
+    const correctAnswers = [
+      "ON DELETE CASCADE",
+      "ON DELETE SET NULL",
+      "ON DELETE RESTRICT",
+      "ON DELETE SET DEFAULT"
+    ];
+
+    const explanations = [
+      "CASCADE automatically deletes all related child rows when the parent row is deleted.",
+      "SET NULL updates foreign keys in child rows to NULL when the parent is deleted.",
+      "RESTRICT blocks deletion if child rows exist, maintaining referential integrity.",
+      "SET DEFAULT sets child foreign key to a predefined default when the parent is deleted."
+    ];
+
+    function checkAnswers() {
+      let score = 0;
+      const rows = document.querySelectorAll("tbody tr");
+
+      rows.forEach((row, index) => {
+        const select = row.querySelector("select");
+        const explanationDiv = row.querySelector(".explanation");
+        row.classList.remove("correct", "incorrect");
+
+        if (select.value === correctAnswers[index]) {
+          row.classList.add("correct");
+          explanationDiv.textContent = "Correct: " + explanations[index];
+          score++;
+        } else {
+          row.classList.add("incorrect");
+          explanationDiv.textContent = `Incorrect. Correct answer: ${correctAnswers[index]}. ` + explanations[index];
+        }
+      });
+
+      document.getElementById("result").textContent = `Your Score: ${score} / ${correctAnswers.length}`;
+    }
+
+    function resetQuiz() {
+      const rows = document.querySelectorAll("tbody tr");
+      rows.forEach(row => {
+        const select = row.querySelector("select");
+        const explanationDiv = row.querySelector(".explanation");
+        select.selectedIndex = 0;
+        explanationDiv.textContent = "";
+        row.classList.remove("correct", "incorrect");
+      });
+      document.getElementById("result").textContent = "";
+    }
+  </script>
+
+</body>
+</html>
